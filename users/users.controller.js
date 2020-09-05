@@ -4,6 +4,7 @@ const Joi = require('joi');
 const validateRequest = require('_middleware/validate-request');
 const authorize = require('_middleware/authorize')
 const userService = require('./user.service');
+const util = require('../utils')
 
 // routes
 router.post('/authenticate', authenticateSchema, authenticate);
@@ -24,18 +25,31 @@ function authenticateSchema(req, res, next) {
     validateRequest(req, next, schema);
 }
 
-function authenticate(req, res, next) {
-    userService.authenticate(req.body)
-        .then(user => res.json(user))
-        .catch(next);
+async function authenticate(req, res, next) {
+  try{
+    await userService.authenticate(req.body)
+    .then(user => res.json({status: 400, message: 'success', data: user}))
+    .catch(err => {
+      return util.responseError(
+          res,
+          {
+            message: err.message,
+            'status': 404
+          }
+        )
+    })
+  } catch(error){
+    next(error)
+  }
 }
 
 function registerSchema(req, res, next) {
     const schema = Joi.object({
-        firstName: Joi.string().required(),
-        lastName: Joi.string().required(),
+        first_name: Joi.string().required(),
+        last_name: Joi.string().required(),
         username: Joi.string().required(),
-        password: Joi.string().min(6).required()
+        password: Joi.string().min(6).required(),
+        email: Joi.string().optional()
     });
     validateRequest(req, next, schema);
 }
@@ -64,10 +78,11 @@ function getById(req, res, next) {
 
 function updateSchema(req, res, next) {
     const schema = Joi.object({
-        firstName: Joi.string().empty(''),
-        lastName: Joi.string().empty(''),
-        username: Joi.string().empty(''),
-        password: Joi.string().min(6).empty('')
+        first_name: Joi.string().required(),
+        last_name: Joi.string().required(),
+        username: Joi.string().required(),
+        password: Joi.string().min(6).required(),
+        email: Joi.string().optional()
     });
     validateRequest(req, next, schema);
 }
