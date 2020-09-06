@@ -19,7 +19,6 @@ async function authenticate({ username, password }) {
 
   // authentication successful
   const token = jwt.sign({ sub: user.id }, config.secret, { expiresIn: '1d' });
-  const refreshToken = randtoken.uid(256) 
     return { ...omitHash(user.get()), token };
 }
 
