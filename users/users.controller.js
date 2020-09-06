@@ -28,7 +28,7 @@ function authenticateSchema(req, res, next) {
 async function authenticate(req, res, next) {
   try{
     await userService.authenticate(req.body)
-    .then(user => res.json({status: 400, message: 'success', data: user}))
+    .then(user => res.json({status: 200, message: 'success', data: user}))
     .catch(err => {
       return util.responseError(
           res,
@@ -49,21 +49,37 @@ function registerSchema(req, res, next) {
         last_name: Joi.string().required(),
         username: Joi.string().required(),
         password: Joi.string().min(6).required(),
-        email: Joi.string().optional()
+        email: Joi.string().required()
     });
     validateRequest(req, next, schema);
 }
 
-function register(req, res, next) {
+async function register(req, res, next) {
+  try {
     userService.create(req.body)
-        .then(() => res.json({ message: 'Registration successful' }))
-        .catch(next);
+    .then(() => res.json({ status: 200, message: 'Registration successful' }))
+    .catch(err => {
+      return util.responseError(
+          res,
+          {
+            message: err.message,
+            'status': 404
+          }
+        )
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
-function getAll(req, res, next) {
-    userService.getAll()
-        .then(users => res.json(users))
-        .catch(next);
+async function getAll(req, res, next) {
+  try{
+    await userService.getAll()
+    .then(users => res.json({status: 200, message: 'success', data: users}))
+    .catch(next);
+  } catch (error) {
+    next(error)
+  }
 }
 
 function getCurrent(req, res, next) {
