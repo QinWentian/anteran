@@ -1,6 +1,10 @@
 module.exports = errorHandler;
+const util = require('../utils')
 
 function errorHandler(err, req, res, next) {
+    const errorJSON = {
+        errors: []
+      }
     switch (true) {
         case typeof err === 'string':
             // custom application error
@@ -9,8 +13,10 @@ function errorHandler(err, req, res, next) {
             return res.status(statusCode).json({ message: err });
         case err.name === 'UnauthorizedError':
             // jwt authentication error
-            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+            errorJSON.errors.push({ status: 401, detail:'Authentication Error', message: 'Unauthorized' })
+            return res.status(401).json(errorJSON);
         default:
-            return res.status(500).json({ status: 500, message: err.message });
+            errorJSON.errors.push({ status: 500, detail:'Bad Request', message: err.message })
+            return res.status(500).json(errorJSON);
     }
 }
